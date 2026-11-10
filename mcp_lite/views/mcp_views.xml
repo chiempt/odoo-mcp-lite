@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mcp_lite_token_view_list" model="ir.ui.view">
+        <field name="name">mcp_lite.token.list</field>
+        <field name="model">mcp_lite.token</field>
+        <field name="arch" type="xml">
+            <list string="Connections" create="false" edit="false">
+                <field name="user_id"/>
+                <field name="client_id"/>
+                <field name="create_date" string="Connected on"/>
+                <field name="last_used_at"/>
+                <field name="refresh_expires_at" string="Expires"/>
+                <button name="action_revoke" type="object" string="Revoke" icon="fa-ban" class="text-danger"
+                        confirm="Disconnect this AI app? It will have to sign in again."/>
+            </list>
+        </field>
+    </record>
+    <record id="mcp_lite_token_action" model="ir.actions.act_window">
+        <field name="name">Connections</field>
+        <field name="res_model">mcp_lite.token</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No AI assistant connected yet</p>
+            <p>Open MCP Lite > Configuration > Settings, copy the connector URL and add it as a custom connector in Claude or ChatGPT.</p>
+        </field>
+    </record>
+
+    <record id="mcp_lite_client_view_list" model="ir.ui.view">
+        <field name="name">mcp_lite.client.list</field>
+        <field name="model">mcp_lite.client</field>
+        <field name="arch" type="xml">
+            <list string="AI apps" create="false">
+                <field name="name"/>
+                <field name="client_id" optional="hide"/>
+                <field name="redirect_uris" optional="hide"/>
+                <field name="active_token_count" string="Active connections"/>
+                <field name="create_date" string="Registered on"/>
+                <button name="action_revoke" type="object" string="Revoke all" icon="fa-ban" class="text-danger"
+                        confirm="Disconnect every user of this AI app?"/>
+            </list>
+        </field>
+    </record>
+    <record id="mcp_lite_client_action" model="ir.actions.act_window">
+        <field name="name">AI apps</field>
+        <field name="res_model">mcp_lite.client</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <record id="mcp_lite_log_view_list" model="ir.ui.view">
+        <field name="name">mcp_lite.log.list</field>
+        <field name="model">mcp_lite.log</field>
+        <field name="arch" type="xml">
+            <list string="Recent activity" create="false" edit="false" delete="false"
+                  decoration-danger="state == 'error'" decoration-warning="state in ('denied', 'limited')">
+                <field name="create_date" string="Time"/>
+                <field name="user_id"/>
+                <field name="client_name" string="App"/>
+                <field name="tool"/>
+                <field name="model"/>
+                <field name="state"/>
+                <field name="message"/>
+            </list>
+        </field>
+    </record>
+    <record id="mcp_lite_log_action" model="ir.actions.act_window">
+        <field name="name">Recent activity</field>
+        <field name="res_model">mcp_lite.log</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <record id="mcp_lite_users_action" model="ir.actions.act_window">
+        <field name="name">Allowed users</field>
+        <field name="res_model">res.groups</field>
+        <field name="view_mode">form</field>
+        <field name="res_id" ref="mcp_lite.group_mcp_user"/>
+    </record>
+    <record id="mcp_lite_settings_action" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'module': 'mcp_lite', 'bin_size': False}</field>
+    </record>
+
+    <menuitem id="mcp_lite_menu_root" name="MCP Lite" groups="mcp_lite.group_mcp_user"
+              web_icon="mcp_lite,static/description/icon.png" sequence="95"/>
+    <menuitem id="mcp_lite_menu_tokens" name="Connections" parent="mcp_lite_menu_root" action="mcp_lite_token_action" sequence="10" groups="base.group_system"/>
+    <menuitem id="mcp_lite_menu_log" name="Recent activity" parent="mcp_lite_menu_root" action="mcp_lite_log_action" sequence="20" groups="base.group_system"/>
+    <menuitem id="mcp_lite_menu_config" name="Configuration" parent="mcp_lite_menu_root" sequence="90" groups="base.group_system"/>
+    <menuitem id="mcp_lite_menu_settings" name="Settings" parent="mcp_lite_menu_config" action="mcp_lite_settings_action" sequence="10"/>
+    <menuitem id="mcp_lite_menu_users" name="Allowed users" parent="mcp_lite_menu_config" action="mcp_lite_users_action" sequence="20"/>
+    <menuitem id="mcp_lite_menu_clients" name="AI apps" parent="mcp_lite_menu_config" action="mcp_lite_client_action" sequence="30"/>
+</odoo>

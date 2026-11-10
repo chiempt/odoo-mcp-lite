@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.mcp_lite</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="MCP Lite" string="MCP Lite" name="mcp_lite"
+                     logo="/mcp_lite/static/description/icon.png" groups="base.group_system">
+                    <block title="Connect an AI assistant" name="mcp_lite_connect">
+                        <setting id="mcp_lite_url" string="Connector URL"
+                                 help="Paste this in claude.ai (Settings > Connectors > Add custom connector), ChatGPT developer mode, Claude Code or Cursor. It must be a public https address.">
+                            <field name="mcp_lite_endpoint" readonly="1" widget="CopyClipboardChar" class="w-100"/>
+                            <div class="mt8">
+                                <label for="mcp_lite_public_url" string="Public URL (optional)" class="o_light_label"/>
+                                <field name="mcp_lite_public_url" placeholder="https://erp.example.com" class="w-100"/>
+                            </div>
+                        </setting>
+                        <setting id="mcp_lite_registration" string="New AI apps"
+                                 help="Must be on the first time claude.ai or ChatGPT connects. You may switch it off afterwards.">
+                            <field name="mcp_lite_allow_registration"/>
+                        </setting>
+                    </block>
+                    <block title="Safety" name="mcp_lite_safety">
+                        <setting id="mcp_lite_hidden" string="Hidden models"
+                                 help="Comma separated; * as suffix, e.g. hr.*, account.payment">
+                            <field name="mcp_lite_blocked_models" class="w-100"/>
+                        </setting>
+                        <setting id="mcp_lite_kill" help="Emergency stop: every AI assistant gets an error until you switch this off.">
+                            <field name="mcp_lite_kill_switch"/>
+                        </setting>
+                        <setting id="mcp_lite_rate" string="Rate limit"
+                                 help="Tool calls per minute and user; 0 means no limit.">
+                            <field name="mcp_lite_rate_limit"/> calls per minute
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

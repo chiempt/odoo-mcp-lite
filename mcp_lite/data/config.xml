@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="param_allow_registration" model="ir.config_parameter">
+        <field name="key">mcp_lite.allow_registration</field>
+        <field name="value">True</field>
+    </record>
+</odoo>

@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_mcp_lite_client_system,mcp_lite.client system,model_mcp_lite_client,base.group_system,1,1,0,1
+access_mcp_lite_token_system,mcp_lite.token system,model_mcp_lite_token,base.group_system,1,0,0,1
+access_mcp_lite_code_system,mcp_lite.code system,model_mcp_lite_code,base.group_system,1,0,0,1
+access_mcp_lite_log_system,mcp_lite.log system,model_mcp_lite_log,base.group_system,1,0,0,1

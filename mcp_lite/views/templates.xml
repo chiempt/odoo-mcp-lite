@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="mcp_lite_consent" name="MCP Lite: allow access">
+        <t t-call="web.login_layout">
+            <t t-set="login_card_classes" t-value="'o_mcp_lite_consent'"/>
+            <h4 class="text-center mb-3">Connect <t t-out="client.name"/>?</h4>
+            <p class="small">
+                <strong t-out="client.name"/> will work in this database as
+                <strong t-out="user.name"/>. It can only see what you can see.
+            </p>
+            <ul class="small ps-3">
+                <li>Read and search your records (read-only)</li>
+                <li>It cannot create, change or delete anything</li>
+            </ul>
+            <p class="small text-muted">Recent requests are listed under MCP Lite > Recent activity. You can disconnect it at any time.</p>
+            <form method="post" action="/mcp/oauth/approve">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <t t-foreach="params" t-as="key">
+                    <input type="hidden" t-att-name="key" t-att-value="params[key]"/>
+                </t>
+                <div class="d-grid gap-2">
+                    <button type="submit" name="decision" value="allow" class="btn btn-primary">Allow</button>
+                    <button type="submit" name="decision" value="deny" class="btn btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </t>
+    </template>
+
+    <template id="mcp_lite_consent_error" name="MCP Lite: cannot connect">
+        <t t-call="web.login_layout">
+            <h4 class="text-center mb-3">Cannot connect</h4>
+            <p class="small" t-out="message"/>
+            <div class="d-grid"><a href="/odoo" class="btn btn-secondary">Back to Odoo</a></div>
+        </t>
+    </template>
+</odoo>

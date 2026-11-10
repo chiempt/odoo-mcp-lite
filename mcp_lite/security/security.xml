@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="group_mcp_user" model="res.groups">
+        <field name="name">MCP Lite: can connect AI assistants</field>
+        <field name="comment">Users in this group can connect Claude, ChatGPT or another MCP client. The assistant can only read what the user may read.</field>
+    </record>
+    <record id="base.group_system" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('mcp_lite.group_mcp_user'))]"/>
+    </record>
+</odoo>

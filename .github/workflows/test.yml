@@ -1,0 +1,15 @@
+name: tests
+on:
+  push:
+  pull_request:
+jobs:
+  odoo:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        odoo: ["17", "18", "19"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run module tests in odoo:${{ matrix.odoo }}
+        run: ./scripts/test.sh ${{ matrix.odoo }}
