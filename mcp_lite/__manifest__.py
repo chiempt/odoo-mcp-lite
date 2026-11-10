@@ -17,7 +17,7 @@ reports see the paid AI Connector on apps.odoo.com.
 """,
     "author": "3B",
     "maintainer": "3B",
-    "website": "https://github.com/OWNER/REPO",
+    "website": "https://github.com/chiempt/odoo-mcp-lite",
     "support": "support@bro3b.dev",
     "license": "LGPL-3",
     "depends": ["base_setup", "mail"],
