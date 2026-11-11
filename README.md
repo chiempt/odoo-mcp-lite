@@ -110,4 +110,9 @@ tools, access rights, leak attempts through hidden fields, rate limit and the pa
 without legal review, which is the point of a free edition. Contributions are accepted under the same licence.
 The paid AI Connector is separate, proprietary code.
 
+## Maintained by PipeX
+
+MCP Lite is built and maintained by [PipeX](https://www.pipex.pro/?utm_source=github&utm_medium=readme&utm_campaign=mcp-lite), a small company making Odoo modules and mobile apps.
+Related open source from the same maintainer: [scenario-browser](https://github.com/chiempt/scenario-browser), browser automation and tests from plain-text scenarios, with its own MCP server so an assistant can validate and run them.
+
 Contributing: [CONTRIBUTING.md](CONTRIBUTING.md). Security: [SECURITY.md](SECURITY.md).
