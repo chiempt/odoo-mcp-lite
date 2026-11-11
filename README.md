@@ -1,5 +1,7 @@
 # MCP Lite: a free, read-only MCP server for your ERP
 
+[![Odoo Mcp Lite on AI Agents Listing](https://aiagentslisting.com/odoo-mcp-lite/badge.svg?claim=cf921b5a3b0f463ea8b78d516f63b8f0)](https://aiagentslisting.com/mcp/odoo-mcp-lite)
+
 Connect **Claude, ChatGPT, Claude Code or Cursor** to your Odoo database (Community or Enterprise, 17 / 18 / 19; 20 passes the suite on a nightly image, see Tests)
 with **one URL**. Sign-in uses OAuth 2.1 built into the module, so there is no proxy, no Node or Python process to run, and nothing to host.
 
