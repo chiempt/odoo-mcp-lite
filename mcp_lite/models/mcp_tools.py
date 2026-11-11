@@ -3,6 +3,7 @@ connected user, so Odoo access rights and record rules decide what it can see.""
 import re
 from datetime import date, datetime
 
+from ..compat import get_param
 from odoo import api, models
 from odoo.exceptions import AccessError, UserError
 
@@ -51,7 +52,7 @@ class McpServer(models.AbstractModel):
     # ------------------------------------------------------------------ settings
     @api.model
     def _blocked_patterns(self):
-        raw = self.env["ir.config_parameter"].sudo().get_param(PARAM + "blocked_models", "")
+        raw = get_param(self.env["ir.config_parameter"].sudo(), PARAM + "blocked_models", "")
         return [p.strip() for p in (raw or "").replace("\n", ",").split(",") if p.strip()]
 
     @staticmethod
@@ -131,6 +132,44 @@ class McpServer(models.AbstractModel):
                     "limit": {"type": "integer", "default": 100, "maximum": 1000},
                     "order": {"type": "string", "description": "e.g. 'amount_total:sum desc'"},
                 }},
+                "annotations": {"readOnlyHint": True},
+            },
+            {
+                "name": "search_by_name",
+                "description": "Find records by name the way the Odoo search box does (customers, products, employees, "
+                               "projects...). Returns id and display name, best matches first. Use it to get an id "
+                               "before filtering other models by that record.",
+                "inputSchema": {"type": "object", "required": ["model", "name"], "properties": {
+                    "model": {"type": "string", "description": "e.g. res.partner, product.product"},
+                    "name": {"type": "string", "description": "Text to look for."},
+                    "limit": {"type": "integer", "default": 10, "maximum": 50},
+                }},
+                "annotations": {"readOnlyHint": True},
+            },
+            {
+                "name": "period_report",
+                "description": "Total a measure over time, one row per day/week/month/quarter/year, optionally split by "
+                               "a second field. Example: monthly revenue = model sale.order, date_field date_order, "
+                               "measure amount_total, period month, date_from 2026-01-01.",
+                "inputSchema": {"type": "object", "required": ["model", "date_field"], "properties": {
+                    "model": {"type": "string"},
+                    "date_field": {"type": "string", "description": "A date or datetime field, e.g. date_order, invoice_date."},
+                    "measure": {"type": "string", "description": "Numeric field to total, e.g. amount_total. Empty counts records."},
+                    "func": {"type": "string", "enum": ["sum", "avg", "max", "min"], "default": "sum"},
+                    "period": {"type": "string", "enum": ["day", "week", "month", "quarter", "year"], "default": "month"},
+                    "date_from": {"type": "string", "description": "YYYY-MM-DD, inclusive. Optional."},
+                    "date_to": {"type": "string", "description": "YYYY-MM-DD, inclusive. Optional."},
+                    "split_by": {"type": "string", "description": "Optional second field to split each period, e.g. partner_id."},
+                    "domain": {"type": "array", "description": domain_help, "default": []},
+                    "limit": {"type": "integer", "default": 200, "maximum": 1000},
+                }},
+                "annotations": {"readOnlyHint": True},
+            },
+            {
+                "name": "suggest_questions",
+                "description": "Example questions this database can answer, based on the apps installed and what the "
+                               "user may read. Use it when the user does not know what to ask.",
+                "inputSchema": {"type": "object", "properties": {}},
                 "annotations": {"readOnlyHint": True},
             },
         ]
@@ -344,6 +383,77 @@ class McpServer(models.AbstractModel):
         )
         keys = groupby + aggregates + ["count"]
         return {"model": model, "groups": [dict(zip(keys, row)) for row in rows]}
+
+    def _tool_search_by_name(self, model, name, limit=10):
+        records = self._mcp_model(model)
+        if not isinstance(name, str) or not name.strip():
+            raise McpToolError("name must be a non-empty string.")
+        limit = max(1, min(int(limit or 10), 50))
+        if "display_name" in records._fields and not records._fields["display_name"].store and not records._rec_name:
+            raise McpToolError(f"'{model}' cannot be searched by name.")
+        found = records.name_search(name.strip(), limit=limit)
+        return {"model": model, "matches": [{"id": rid, "display_name": label} for rid, label in found]}
+
+    _PERIODS = ("day", "week", "month", "quarter", "year")
+
+    def _tool_period_report(self, model, date_field, measure=None, func="sum", period="month",
+                            date_from=None, date_to=None, split_by=None, domain=None, limit=200):
+        records = self._mcp_model(model)
+        if period not in self._PERIODS:
+            raise McpToolError("period must be one of: " + ", ".join(self._PERIODS))
+        if func not in ("sum", "avg", "max", "min"):
+            raise McpToolError("func must be sum, avg, max or min.")
+        if "." in date_field or date_field not in records._fields or records._fields[date_field].type not in ("date", "datetime"):
+            raise McpToolError(f"'{date_field}' is not a date field on {model}. Use get_fields.")
+        domain = self._mcp_domain(domain)
+        for bound, op in ((date_from, ">="), (date_to, "<=")):
+            if bound:
+                try:
+                    date.fromisoformat(str(bound)[:10])
+                except ValueError:
+                    raise McpToolError("Dates must be YYYY-MM-DD.")
+                domain.append((date_field, op, str(bound)[:10]))
+        groupby = [f"{date_field}:{period}"]
+        if split_by:
+            if "." in split_by or split_by not in records._fields:
+                raise McpToolError(f"Field '{split_by}' does not exist on {model}.")
+            groupby.append(split_by)
+        aggregates = []
+        if measure:
+            if "." in measure or measure not in records._fields:
+                raise McpToolError(f"Field '{measure}' does not exist on {model}.")
+            aggregates.append(f"{measure}:{func}")
+        self._assert_fields(records, [date_field, split_by or "", measure or ""])
+        domain = self._check_domain(records, domain)
+        rows = records._read_group(domain, groupby, aggregates + ["__count"],
+                                   limit=max(1, min(int(limit or 200), 1000)), order=f"{date_field}:{period}")
+        keys = groupby + aggregates + ["count"]
+        return {"model": model, "period": period, "rows": [dict(zip(keys, row)) for row in rows]}
+
+    def _tool_suggest_questions(self):
+        checks = [
+            ("sale.order", "How much did we sell per month this year, and who are the top 10 customers?",
+             "period_report on sale.order (date_order, amount_total), then aggregate by partner_id"),
+            ("account.move", "Which customer invoices are overdue, oldest first?",
+             "search_records on account.move with move_type out_invoice and amount_residual > 0"),
+            ("crm.lead", "How many open leads per stage, and what is the expected revenue?",
+             "aggregate_records on crm.lead grouped by stage_id with expected_revenue:sum"),
+            ("stock.quant", "Which products have the most stock on hand?",
+             "aggregate_records on stock.quant grouped by product_id with quantity:sum"),
+            ("purchase.order", "What did we order from each vendor this quarter?",
+             "period_report on purchase.order split by partner_id"),
+            ("project.task", "Which tasks are overdue and who owns them?",
+             "search_records on project.task with date_deadline in the past"),
+            ("hr.employee", "How many employees per department?",
+             "aggregate_records on hr.employee grouped by department_id"),
+            ("res.partner", "Find the customer 'Acme' and show their contact details.",
+             "search_by_name on res.partner, then search_records"),
+        ]
+        out = []
+        for model, question, how in checks:
+            if model in self.env and not self._model_blocked(model) and self._can(self.env[model], "read"):
+                out.append({"model": model, "question": question, "how": how})
+        return {"questions": out, "hint": "Ask in plain language; the assistant picks the tools."}
 
 
 def tool_error_message(exc):

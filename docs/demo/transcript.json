@@ -1,0 +1,151 @@
+[
+ {
+  "tool": "whoami",
+  "arguments": {},
+  "is_error": false,
+  "result": {
+   "user": "Administrator",
+   "login": "admin",
+   "user_id": 2,
+   "company": "My Company",
+   "currency": "USD",
+   "companies": [
+    "My Company"
+   ],
+   "lang": "en_US",
+   "tz": false,
+   "can_change_data": false,
+   "edition": "MCP Lite (read-only)"
+  }
+ },
+ {
+  "tool": "search_by_name",
+  "arguments": {
+   "model": "res.partner",
+   "name": "azure"
+  },
+  "is_error": false,
+  "result": {
+   "model": "res.partner",
+   "matches": [
+    {
+     "id": 6,
+     "display_name": "Azure Interior"
+    }
+   ]
+  }
+ },
+ {
+  "tool": "period_report",
+  "arguments": {
+   "model": "sale.order",
+   "date_field": "date_order",
+   "measure": "amount_total",
+   "period": "month"
+  },
+  "is_error": false,
+  "result": {
+   "model": "sale.order",
+   "period": "month",
+   "rows": [
+    {
+     "date_order:month": "2026-03-01T00:00:00",
+     "amount_total:sum": 10948.0,
+     "count": 5
+    },
+    {
+     "date_order:month": "2026-04-01T00:00:00",
+     "amount_total:sum": 6497.5,
+     "count": 2
+    },
+    {
+     "date_order:month": "2026-05-01T00:00:00",
+     "amount_total:sum": 9809.5,
+     "count": 4
+    },
+    {
+     "date_order:month": "2026-06-01T00:00:00",
+     "amount_total:sum": 8280.0,
+     "count": 4
+    },
+    {
+     "date_order:month": "2026-07-01T00:00:00",
+     "amount_total:sum": 11201.0,
+     "count": 7
+    },
+    {
+     "date_order:month": "2026-08-01T00:00:00",
+     "amount_total:sum": 2806.0,
+     "count": 1
+    },
+    {
+     "date_order:month": "2026-10-01T00:00:00",
+     "amount_total:sum": 3588.0,
+     "count": 1
+    }
+   ]
+  }
+ },
+ {
+  "tool": "aggregate_records",
+  "arguments": {
+   "model": "sale.order",
+   "groupby": [
+    "partner_id"
+   ],
+   "measures": [
+    "amount_total:sum"
+   ],
+   "limit": 3,
+   "order": "amount_total:sum desc"
+  },
+  "is_error": false,
+  "result": {
+   "model": "sale.order",
+   "groups": [
+    {
+     "partner_id": [
+      6,
+      "Azure Interior"
+     ],
+     "amount_total:sum": 21735.0,
+     "count": 9
+    },
+    {
+     "partner_id": [
+      7,
+      "Deco Addict"
+     ],
+     "amount_total:sum": 15433.0,
+     "count": 8
+    },
+    {
+     "partner_id": [
+      8,
+      "Gemini Furniture"
+     ],
+     "amount_total:sum": 8682.5,
+     "count": 3
+    }
+   ]
+  }
+ },
+ {
+  "tool": "search_records",
+  "arguments": {
+   "model": "res.partner",
+   "domain": [
+    [
+     "user_ids.password",
+     "!=",
+     false
+    ]
+   ],
+   "fields": [
+    "name"
+   ]
+  },
+  "is_error": true,
+  "result": "Field 'password' is not available to AI assistants on res.users."
+ }
+]

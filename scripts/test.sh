@@ -6,7 +6,7 @@ V="${1:-19}"
 HERE="$(cd "$(dirname "$0")/.." && pwd)"
 RUN="mcp-lite-test-$V-$$"
 ADDONS="$(mktemp -d)"
-trap 'docker rm -f "$RUN-db" >/dev/null 2>&1 || true; docker network rm "$RUN" >/dev/null 2>&1 || true; rm -rf "$ADDONS"' EXIT
+trap 'docker rm -fv "$RUN-db" >/dev/null 2>&1 || true; docker network rm "$RUN" >/dev/null 2>&1 || true; rm -rf "$ADDONS"' EXIT
 
 cp -R "$HERE/mcp_lite" "$ADDONS/mcp_lite"
 if [ "$V" = "17" ]; then
@@ -14,6 +14,10 @@ if [ "$V" = "17" ]; then
   sed -i.bak -e 's/<list /<tree /g; s/<\/list>/<\/tree>/g; s/>list</>tree</g; s/"list,form"/"tree,form"/g; s/<list>/<tree>/g' "$ADDONS/mcp_lite/views/"*.xml
   sed -i.bak -e 's/>list</>tree</g' "$ADDONS/mcp_lite/views/mcp_views.xml"
   find "$ADDONS" -name '*.bak' -delete
+fi
+if [ "$V" = "20" ]; then
+  # Odoo 20 has a different access-rights file format; port20.py converts it (see its docstring)
+  python3 "$HERE/scripts/port20.py" "$ADDONS/mcp_lite"
 fi
 sed -i.bak "s/\"version\": \"[0-9.]*\"/\"version\": \"$V.0.1.0.0\"/" "$ADDONS/mcp_lite/__manifest__.py"; rm -f "$ADDONS/mcp_lite/__manifest__.py.bak"
 

@@ -1,6 +1,6 @@
 {
     "name": "MCP Lite - Free Read-only AI Connector for Claude, ChatGPT and Cursor",
-    "version": "19.0.1.0.0",
+    "version": "19.0.1.1.0",
     "category": "Productivity",
     "summary": "Open source MCP server for your ERP: built-in OAuth, read-only tools, rate limit and kill switch. No extra server.",
     "description": """

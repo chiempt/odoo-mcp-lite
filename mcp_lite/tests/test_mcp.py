@@ -4,6 +4,7 @@ import json
 import secrets
 from urllib.parse import parse_qs, urlparse
 
+from odoo.addons.mcp_lite.compat import set_param
 from odoo.tests import HttpCase, tagged
 
 REDIRECT = "https://claude.ai/api/mcp/auth_callback"
@@ -20,7 +21,7 @@ class TestMcpConnector(HttpCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.icp = cls.env["ir.config_parameter"].sudo()
-        cls.icp.set_param("mcp_lite.public_url", "")
+        set_param(cls.icp, "mcp_lite.public_url", "")
         users = cls.env["res.users"].with_context(no_reset_password=True)
         groups_field = "group_ids" if "group_ids" in users._fields else "groups_id"
         cls.group = cls.env.ref("mcp_lite.group_mcp_user")
@@ -46,8 +47,8 @@ class TestMcpConnector(HttpCase):
         self.assertEqual(res.status_code, 200, res.text)
         return res.json()
 
-    def _tool(self, token, name, **arguments):
-        result = self._rpc(token, "tools/call", {"name": name, "arguments": arguments})["result"]
+    def _tool(self, token, tool_name, **arguments):
+        result = self._rpc(token, "tools/call", {"name": tool_name, "arguments": arguments})["result"]
         return result.get("isError", False), result["content"][0]["text"]
 
     def _register(self):
@@ -101,7 +102,7 @@ class TestMcpConnector(HttpCase):
     def test_register_rejects_bad_redirect(self):
         res = self._post_json("/mcp/oauth/register", {"redirect_uris": ["http://evil.example/cb"]})
         self.assertEqual(res.status_code, 400)
-        self.icp.set_param("mcp_lite.allow_registration", "False")
+        set_param(self.icp, "mcp_lite.allow_registration", "False")
         res = self._post_json("/mcp/oauth/register", {"redirect_uris": [REDIRECT]})
         self.assertEqual(res.status_code, 403)
 
@@ -156,6 +157,32 @@ class TestMcpConnector(HttpCase):
         logs = self.env["mcp_lite.log"].search([("user_id", "=", self.basic.id)])
         self.assertTrue(logs.filtered(lambda l: l.tool == "search_records" and l.state == "ok"))
 
+    def test_v02_tools(self):
+        _cid, tokens, _c, _v = self._oauth_token("mcp_basic", "mcp_basic_pw_123")
+        access = tokens["access_token"]
+        err, text = self._tool(access, "search_by_name", model="res.partner", name="Azure MCP")
+        self.assertFalse(err, text)
+        self.assertEqual(json.loads(text)["matches"][0]["id"], self.partner.id)
+        err, text = self._tool(access, "search_by_name", model="ir.config_parameter", name="x")
+        self.assertTrue(err)
+        err, text = self._tool(access, "period_report", model="res.partner", date_field="create_date",
+                               period="month", date_from="2000-01-01")
+        self.assertFalse(err, text)
+        self.assertTrue(json.loads(text)["rows"])
+        err, text = self._tool(access, "period_report", model="res.partner", date_field="create_date",
+                               split_by="user_id", measure="id", func="max")
+        self.assertFalse(err, text)
+        # hidden fields cannot be used as split, measure or date field
+        for kw in ({"split_by": "user_ids.password"}, {"split_by": "signup_token"}, {"measure": "signup_token"},
+                   {"date_from": "not-a-date"}, {"period": "decade"}):
+            err, text = self._tool(access, "period_report", model="res.partner", date_field="create_date", **kw)
+            self.assertTrue(err, kw)
+        err, text = self._tool(access, "period_report", model="res.partner", date_field="name")
+        self.assertTrue(err)
+        err, text = self._tool(access, "suggest_questions")
+        self.assertFalse(err, text)
+        self.assertIn("questions", json.loads(text))
+
     def test_access_rights_and_safety(self):
         _cid, tokens, _c, _v = self._oauth_token("mcp_basic", "mcp_basic_pw_123")
         access = tokens["access_token"]
@@ -170,15 +197,16 @@ class TestMcpConnector(HttpCase):
         err, text = self._tool(access, "search_records", model="ir.actions.server")
         self.assertTrue(err)
         # lite has no write tools, even when someone sets the old paid-edition parameters
-        self.icp.set_param("mcp_lite.allow_write", "True")
+        set_param(self.icp, "mcp_lite.allow_write", "True")
         names = {t["name"] for t in self._rpc(access, "tools/list")["result"]["tools"]}
-        self.assertEqual(names, {"whoami", "list_models", "get_fields", "search_records", "count_records", "aggregate_records"})
+        self.assertEqual(names, {"whoami", "list_models", "get_fields", "search_records", "count_records", "aggregate_records",
+                                 "search_by_name", "period_report", "suggest_questions"})
         for tool in ("create_record", "update_record", "delete_records", "run_action", "post_message"):
             err, text = self._tool(access, tool, model="res.partner", values={"name": "X"})
             self.assertTrue(err, tool)
         self.assertFalse(self.env["res.partner"].search([("name", "=", "X")]))
         # hidden models
-        self.icp.set_param("mcp_lite.blocked_models", "res.partner")
+        set_param(self.icp, "mcp_lite.blocked_models", "res.partner")
         err, text = self._tool(access, "search_records", model="res.partner")
         self.assertTrue(err)
         err, text = self._tool(access, "list_models", query="partner")
@@ -207,10 +235,10 @@ class TestMcpConnector(HttpCase):
             err, text = self._tool(access, tool, **args)
             self.assertTrue(err, f"{tool} {args} was allowed: {text}")
         # a relation into a blocked model is refused too
-        self.icp.set_param("mcp_lite.blocked_models", "res.users")
+        set_param(self.icp, "mcp_lite.blocked_models", "res.users")
         err, text = self._tool(access, "count_records", model="res.partner", domain=[["user_ids.login", "=", "admin"]])
         self.assertTrue(err, text)
-        self.icp.set_param("mcp_lite.blocked_models", "")
+        set_param(self.icp, "mcp_lite.blocked_models", "")
         # normal paths still work
         err, text = self._tool(access, "count_records", model="res.partner", domain=[["user_ids.login", "=", "mcp_basic"]])
         self.assertFalse(err, text)
@@ -251,9 +279,9 @@ class TestMcpConnector(HttpCase):
     def test_api_key_auth(self):
         apikeys = self.env["res.users.apikeys"].with_user(self.basic).sudo()
         try:
-            key = apikeys._generate(None, "claude code", None)
+            key = apikeys._generate("rpc", "claude code", None)
         except TypeError:  # Odoo 17 has no expiration argument
-            key = apikeys._generate(None, "claude code")
+            key = apikeys._generate("rpc", "claude code")
         result = self._rpc(key, "tools/list")["result"]
         self.assertTrue(result["tools"])
         err, text = self._tool(key, "whoami")
@@ -262,18 +290,18 @@ class TestMcpConnector(HttpCase):
     def test_rate_limit_and_kill_switch(self):
         _cid, tokens, _c, _v = self._oauth_token("mcp_basic", "mcp_basic_pw_123")
         access = tokens["access_token"]
-        self.icp.set_param("mcp_lite.rate_limit", "3")
+        set_param(self.icp, "mcp_lite.rate_limit", "3")
         calls = [self._tool(access, "whoami") for _ in range(3)]
         self.assertFalse(any(err for err, _t in calls))
         err, text = self._tool(access, "whoami")
         self.assertTrue(err)
         self.assertIn("Rate limit", text)
         self.assertTrue(self.env["mcp_lite.log"].search([("user_id", "=", self.basic.id), ("state", "=", "limited")]))
-        self.icp.set_param("mcp_lite.rate_limit", "0")
+        set_param(self.icp, "mcp_lite.rate_limit", "0")
         err, text = self._tool(access, "whoami")
         self.assertFalse(err, text)
-        self.icp.set_param("mcp_lite.kill_switch", "True")
+        set_param(self.icp, "mcp_lite.kill_switch", "True")
         res = self._post_json("/mcp", {"jsonrpc": "2.0", "id": 1, "method": "ping"}, access)
         self.assertEqual(res.status_code, 503)
-        self.icp.set_param("mcp_lite.kill_switch", "False")
+        set_param(self.icp, "mcp_lite.kill_switch", "False")
         self.assertEqual(self._rpc(access, "ping")["result"], {})

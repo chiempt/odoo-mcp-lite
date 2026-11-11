@@ -1,3 +1,4 @@
+from ..compat import get_param
 from odoo import api, fields, models
 
 
@@ -24,5 +25,5 @@ class ResConfigSettings(models.TransientModel):
     @api.depends("mcp_lite_public_url")
     def _compute_mcp_lite_endpoint(self):
         for settings in self:
-            base = (settings.mcp_lite_public_url or self.env["ir.config_parameter"].sudo().get_param("web.base.url") or "").rstrip("/")
+            base = (settings.mcp_lite_public_url or get_param(self.env["ir.config_parameter"].sudo(), "web.base.url") or "").rstrip("/")
             settings.mcp_lite_endpoint = base + "/mcp"

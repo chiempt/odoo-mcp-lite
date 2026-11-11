@@ -7,6 +7,7 @@ import logging
 import time
 from urllib.parse import urlencode, urlparse
 
+from ..compat import get_param
 from odoo import http
 from odoo.http import request
 
@@ -16,7 +17,7 @@ _logger = logging.getLogger(__name__)
 
 PROTOCOL_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"]
 SERVER_NAME = "MCP Lite"
-SERVER_VERSION = "1.0.0"
+SERVER_VERSION = "0.2.0"
 GROUP = "mcp_lite.group_mcp_user"
 INSTRUCTIONS = (
     "You are connected read-only to an ERP database as the signed-in user; you see only what that user may see. "
@@ -37,7 +38,7 @@ def _json_response(payload, status=200, headers=None):
 
 def _base_url():
     icp = request.env["ir.config_parameter"].sudo()
-    url = icp.get_param("mcp_lite.public_url") or icp.get_param("web.base.url") or request.httprequest.host_url
+    url = get_param(icp, "mcp_lite.public_url") or get_param(icp, "web.base.url") or request.httprequest.host_url
     return url.rstrip("/")
 
 
@@ -100,7 +101,7 @@ class McpController(http.Controller):
     @http.route("/mcp/oauth/register", type="http", auth="none", methods=["POST", "OPTIONS"],
                 csrf=False, cors="*", save_session=False, readonly=False)
     def register(self, **kw):
-        if request.env["ir.config_parameter"].sudo().get_param("mcp_lite.allow_registration", "True") != "True":
+        if get_param(request.env["ir.config_parameter"].sudo(), "mcp_lite.allow_registration", "True") != "True":
             return _json_response({"error": "access_denied",
                                    "error_description": "New AI apps are switched off in MCP Lite settings."}, 403)
         try:
@@ -256,7 +257,7 @@ class McpController(http.Controller):
             return self._unauthorized()
         if not _in_group(user):
             return self._unauthorized("This user is not allowed to connect AI assistants")
-        if request.env["ir.config_parameter"].sudo().get_param("mcp_lite.kill_switch") == "True":
+        if get_param(request.env["ir.config_parameter"].sudo(), "mcp_lite.kill_switch") == "True":
             return _json_response({"jsonrpc": "2.0", "id": None, "error": {
                 "code": -32000, "message": "AI access to this database is paused by an administrator."}}, 503)
         if method == "DELETE":

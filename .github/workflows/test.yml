@@ -5,10 +5,11 @@ on:
 jobs:
   odoo:
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.odoo == '20' }}  # 20 runs on a nightly image
     strategy:
       fail-fast: false
       matrix:
-        odoo: ["17", "18", "19"]
+        odoo: ["17", "18", "19", "20"]
     steps:
       - uses: actions/checkout@v4
       - name: Run module tests in odoo:${{ matrix.odoo }}

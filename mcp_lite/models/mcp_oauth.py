@@ -3,6 +3,7 @@ import hashlib
 import secrets
 from datetime import timedelta
 
+from ..compat import get_param
 from odoo import api, fields, models
 
 ACCESS_TTL = timedelta(hours=1)
@@ -218,7 +219,7 @@ class McpLog(models.Model):
     @api.model
     def _rate_limited(self, user):
         """An error message when the user is over the per-minute limit, else False."""
-        raw = self.env["ir.config_parameter"].sudo().get_param("mcp_lite.rate_limit", "60")
+        raw = get_param(self.env["ir.config_parameter"].sudo(), "mcp_lite.rate_limit", "60")
         limit = int(raw) if str(raw).lstrip("-").isdigit() else 60
         if limit <= 0:
             return False
