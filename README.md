@@ -29,6 +29,8 @@ It calls `list_models`, `get_fields`, `aggregate_records` and `search_records`, 
 3. Administrators can connect straight away. Add other people to the group **MCP Lite: can connect AI assistants**.
 4. Copy the **Connector URL** from MCP Lite > Configuration > Settings (it is `https://your-erp/mcp`).
 
+> **Do not install MCP Lite together with the paid AI Connector (`ant_mcp_connector`) on the same database.** Both register the same `/mcp` and OAuth routes, so sign-in will break. If you upgrade to the paid module, uninstall MCP Lite first. (Reported by our own review, not yet tested end to end.)
+
 ## Connect your assistant
 
 | Client | How |
