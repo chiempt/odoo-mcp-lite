@@ -26,4 +26,4 @@ A security fix is always welcome, whatever it touches.
 ## Pull requests
 
 Describe the problem, show the test that fails before and passes after. By contributing you agree your work is
-licensed under LGPL-3.0, the same as the project. Please sign off your commits (`git commit -s`).
+licensed under Apache-2.0 (including its patent grant), the same as the project. Please sign off your commits (`git commit -s`).

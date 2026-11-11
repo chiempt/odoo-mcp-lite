@@ -1,6 +1,6 @@
 # MCP Lite v0.2.0
 
-Still read-only. Still one Odoo module, LGPL-3, no dependencies.
+Still read-only. Still one Odoo module, Apache-2.0, no dependencies.
 
 ## New
 - `period_report`: total a measure per day / week / month / quarter / year, with optional date range and a second split field. Revenue per month is now one call.

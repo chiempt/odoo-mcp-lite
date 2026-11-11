@@ -24,7 +24,7 @@ The part I spent most time on is leak prevention. Filtering, sorting or grouping
 
 Honest limits: nothing here is tested against claude.ai or ChatGPT itself from a public host by CI (the protocol and OAuth flow are covered by the test suite, which drives the endpoints directly); it is not tested on Odoo.sh or behind multi-worker load balancers; what the assistant reads is sent to the AI provider, so connect only people who may share that data.
 
-Licence is LGPL-3. I also sell a paid edition (writes with approval, per-group policies, audit log) on the Odoo app store; the free one is complete for read-only use and the README has a plain comparison table. Happy to take criticism of the security model, SECURITY.md lists what I know is weak.
+Licence is Apache-2.0. I also sell a paid edition (writes with approval, per-group policies, audit log) on the Odoo app store; the free one is complete for read-only use and the README has a plain comparison table. Happy to take criticism of the security model, SECURITY.md lists what I know is weak.
 
 ---
 
@@ -38,7 +38,7 @@ Rules to check first (r/Odoo): read the sidebar, self-promotion needs to be disc
 
 Disclosure: I made this, and I also sell a paid module in the same area.
 
-MCP Lite is a free Odoo module (LGPL-3, 17/18/19) that exposes your database as a remote MCP server. Install it, copy the connector URL from Settings, add it as a custom connector in Claude (or ChatGPT developer mode, Claude Code, Cursor), sign in with your Odoo user and click Allow.
+MCP Lite is a free Odoo module (Apache-2.0, 17/18/19) that exposes your database as a remote MCP server. Install it, copy the connector URL from Settings, add it as a custom connector in Claude (or ChatGPT developer mode, Claude Code, Cursor), sign in with your Odoo user and click Allow.
 
 - Read-only: search, count, group/total, report by month, find records by name. No create/write/delete code at all.
 - Runs as the user, so access rights and record rules apply.
@@ -63,7 +63,7 @@ Rules: use the "Odoo Apps"/relevant category, search first for existing threads,
 
 Hello,
 
-I published a small LGPL-3 module, mcp_lite, that turns an Odoo database into a remote MCP endpoint (/mcp) so an AI assistant can read data as the logged-in user. OAuth 2.1 with PKCE is inside the module, no external process.
+I published a small Apache-2.0 module, mcp_lite, that turns an Odoo database into a remote MCP endpoint (/mcp) so an AI assistant can read data as the logged-in user. OAuth 2.1 with PKCE is inside the module, no external process.
 
 Scope on purpose: read only (find models, fields, search, count, aggregate, report by period). Odoo ACLs and record rules apply. Sensitive fields are hidden, and cannot be used in domains, ordering or grouping (including dotted paths and "any" sub-domains), which is where simple implementations leak.
 

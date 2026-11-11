@@ -7,7 +7,7 @@ with **one URL**. Sign-in uses OAuth 2.1 built into the module, so there is no p
 * **Read-only**: find models and fields, search, count, total records, report by month, find a record by name. It cannot create, change or delete anything.
 * Passwords, tokens, API keys and binary fields are never returned, and cannot be used to filter or group either.
 * Per-user **rate limit** and a **Pause all AI access** switch.
-* LGPL-3.0, no external dependencies.
+* Apache-2.0, no external dependencies.
 
 > Not affiliated with or endorsed by Odoo S.A. "Odoo" is a trademark of Odoo S.A.
 
@@ -141,8 +141,10 @@ tools, access rights, leak attempts through hidden fields, rate limit and the pa
 
 ## License
 
-[LGPL-3.0](LICENSE). Why LGPL and not AGPL: it is the licence Odoo itself uses, so companies can install it next to their own code
-without legal review, which is the point of a free edition. Contributions are accepted under the same licence.
+[Apache-2.0](LICENSE). The code of this module is licensed under the Apache License 2.0; you may use, modify and
+redistribute it, including in commercial products. Odoo only accepts a fixed list of values in `license`, so the manifest says
+`Other OSI approved licence`: it means Apache-2.0. To be straight about it: the module runs inside Odoo, which is LGPL-3,
+and Apache-2.0 applies to the code in this repository, not to Odoo itself. Contributions are accepted under Apache-2.0.
 The paid AI Connector is separate, proprietary code.
 
 ## Maintained by PipeX
