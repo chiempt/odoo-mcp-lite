@@ -109,7 +109,7 @@ Short version; the full model and the honest list of limits is in [SECURITY.md](
 
 ## Free vs paid
 
-| | **MCP Lite** (this repo, free) | **AI Connector** (paid, [apps.odoo.com](https://apps.odoo.com/apps/modules/19.0/ant_mcp_connector?utm_source=github&utm_medium=readme-table&utm_campaign=mcp-lite)) |
+| | **MCP Lite** (this repo, free) | **AI Connector** (paid, [apps.odoo.com](https://apps.odoo.com/apps/modules/19.0/ant_mcp_connector?utm_source=github&utm_medium=readme-table&utm_campaign=odoo_mcp_lite)) |
 |---|---|---|
 | OAuth 2.1 (DCR + PKCE), one URL | yes | yes |
 | Read tools: search, count, aggregate, report by period, find by name, fields | yes | yes |
@@ -130,7 +130,7 @@ The paid one is for teams that let the assistant change data and need approvals,
 **The two cannot be installed in the same database** (both answer on `/mcp`); the installer refuses.
 To move up, uninstall MCP Lite, install AI Connector, and connect again.
 
-Paid edition: https://apps.odoo.com/apps/modules/19.0/ant_mcp_connector?utm_source=github&utm_medium=readme&utm_campaign=mcp-lite
+Paid edition: https://apps.odoo.com/apps/modules/19.0/ant_mcp_connector?utm_source=github&utm_medium=readme&utm_campaign=odoo_mcp_lite
 
 ## Tests
 
@@ -151,7 +151,7 @@ The paid AI Connector is separate, proprietary code.
 
 ## Maintained by PipeX
 
-MCP Lite is built and maintained by [PipeX](https://www.pipex.pro/?utm_source=github&utm_medium=readme&utm_campaign=mcp-lite), a small company making Odoo modules and mobile apps.
+MCP Lite is built and maintained by [PipeX](https://www.pipex.pro/?utm_source=github&utm_medium=readme&utm_campaign=odoo_mcp_lite), a small company making Odoo modules and mobile apps.
 Related open source from the same maintainer: [scenario-browser](https://github.com/chiempt/scenario-browser), browser automation and tests from plain-text scenarios, with its own MCP server so an assistant can validate and run them.
 
 Contributing: [CONTRIBUTING.md](CONTRIBUTING.md). Security: [SECURITY.md](SECURITY.md).
